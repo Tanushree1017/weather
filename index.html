@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Weather Dashboard</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #f4f5f7, #5292e7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.container {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+h1 { color: black }
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+button {
+  padding: 0.5rem 1rem;
+  background-color: rgb(160, 185, 221);
+  color: white;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+}
+button:hover {
+  background-color: #ed0ca6;
+}
+.weather-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #e9f7fe;
+  color: #333;
+}
+.error {
+  color: red;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+.loader {
+  margin: 1rem auto;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ccc;
+  border-top: 3px solid #007BFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@media screen and (max-width: 500px) {
+  .container { width: 95%; }
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌦 Current weather</h1>
+    <div class="input-group">
+      <input type="text" id="cityInput" placeholder="Enter city name">
+      <button onclick="getWeather()">Get Weather</button>
+    </div>
+    <div id="loader" class="loader" style="display:none;"></div>
+    <div id="error" class="error"></div>
+    <div id="weatherResult" class="weather-card"></div>
+  </div>
+
+<script>
+const API_KEY = '32164e46a995d8a0def45a1fc1c12eb7'; 
+
+function getWeather() {
+  const city = document.getElementById('cityInput').value.trim();
+  const resultDiv = document.getElementById('weatherResult');
+  const errorDiv = document.getElementById('error');
+  const loader = document.getElementById('loader');
+
+  if (!city) {
+    errorDiv.textContent = "Please enter a city name.";
+    resultDiv.innerHTML = '';
+    return;
+  }
+
+  loader.style.display = 'block';
+  resultDiv.innerHTML = '';
+  errorDiv.textContent = '';
+
+  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`)
+    .then(response => response.json())
+    .then(data => {
+      loader.style.display = 'none';
+      if (data.cod !== 200) {
+        errorDiv.textContent = data.message;
+        return;
+      }
+
+      const weatherMain = data.weather[0].main;
+      const icon = getWeatherIcon(weatherMain);
+
+      resultDiv.innerHTML = `
+        <h2>${data.name}, ${data.sys.country}</h2>
+        <p>${icon} ${weatherMain}</p>
+        <p>🌡 Temp: ${data.main.temp}°C</p>
+        <p>💨 Wind: ${data.wind.speed} m/s</p>
+      `;
+    })
+    .catch(() => {
+      loader.style.display = 'none';
+      errorDiv.textContent = 'Error fetching weather data.';
+    });
+}
+
+function getWeatherIcon(condition) {
+  switch (condition) {
+    case 'Clouds': return '☁';
+    case 'Rain': return '🌧';
+    case 'Clear': return '☀';
+    case 'Snow': return '❄';
+    case 'Thunderstorm': return '⛈';
+    case 'Drizzle': return '🌦';
+    default: return '🌈';
+  }
+}
+</script>
+</body>
+</html>
